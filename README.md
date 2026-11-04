@@ -1,13 +1,9 @@
-
-# ai-finance-tracker
-AI finance tracker built with n8n and Gemini: log expenses from a chat message, update the balance in Google Sheets, and get a Gmail alert when it drops to 5,000 or below.
-
 # AI Finance Tracker
 
-Log expenses by sending a chat message. The workflow records the transaction, updates your balance in Google Sheets, and emails you when the balance runs low.
+AI finance tracker built with n8n and Gemini: Log expenses by sending a chat message. The workflow records the transaction, updates your balance in Google Sheets, and emails you when the balance runs low.
 
 ## 🎥 Demo
-(Drag your demo video here)
+https://github.com/user-attachments/assets/ec0a7c50-c42a-4fa9-8f04-bf5be6fd83ea
 
 ## The Problem
 Tracking expenses by hand is slow, and it's easy to forget to update the balance.
