@@ -8,6 +8,9 @@ https://github.com/user-attachments/assets/ec0a7c50-c42a-4fa9-8f04-bf5be6fd83ea
 ## The Problem
 Tracking expenses by hand is slow, and it's easy to forget to update the balance.
 
+## The Solution
+This workflow turns a simple chat message into a complete finance entry. Gemini reads the message, works out the amount, category, and whether it's income or an expense, and the workflow updates the running balance in Google Sheets automatically. If the balance drops to 5,000 or below, it sends an email alert so you can act before running short.
+
 ## How It Works
 1. **Trigger:** a chat message is received (e.g. "Spent 450 on groceries")
 2. **AI agent:** Google Gemini extracts the amount, category, and whether it's income or an expense, with simple memory for conversation context
