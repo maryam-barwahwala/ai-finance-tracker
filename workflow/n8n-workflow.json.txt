@@ -1,0 +1,304 @@
+{
+  "name": "my finance tracker",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "ID",
+      "name": "When chat message received",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "ID"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "=You are a helpful finance tracker model\nAnalyze the user input and break it down into below mentioned fields:\n\n- Credit/Debit\n\n- Type of expense\n\n- Date\n\n- Amount\n\n- Balance Amount\n\n\nBefore calculating, ALWAYS call the get_previous_balance tool to read the sheet. The previous balance is the \"Balance Amount\" value in the LAST row of the sheet. Never assume or invent a starting balance. If the sheet has no rows and the user did not state a starting balance, ask the user for it and do not add a row.\nWhen it is a debit subtract the Amount from the previous balance, when it is a credit add the Amount to the previous balance. Write the result as the new \"Balance Amount\".\n\nOnce you have come up with the output fields add the latest output field to the google sheet.\nIf the input message is vauge and it is not clear how much amount is spent or what was the type of expense is not clear or when it was spend is not mentioned do not add the line ask the user again for the clearity\n\nIf the total becomes 5000 or below 5000 send an email to the user alerting them about low balance using Gmail send alert tool.\n\nCORRECTIONS:\nIf the user says a previous entry was wrong (for example \"sorry, it was 50\" or \"that should be 250\"), do NOT ask them to confirm and do NOT edit existing rows. Fix it with two new rows, in this order:\n\n1. Reversal row: cancel the wrong entry.\n   - Credit/Debit: the opposite of the wrong entry (Credit if it was a Debit, Debit if it was a Credit)\n   - Type of expense: \"Correction - reversal of <original type of expense>\"\n   - Amount: the wrong amount\n   - Date: today's date\n   - Balance Amount: previous balance adjusted by this row\n\n2. Corrected row: record the right entry.\n   - Credit/Debit, Type of expense: same as the original entry\n   - Amount: the corrected amount\n   - Date: the original entry's date\n   - Balance Amount: the balance after the reversal row, adjusted by this row\n\nAlways call get_previous_balance first to read the last row. If the last row is not the entry being corrected, or it is unclear which entry the user means, ask which entry they mean before adding anything.\nCheck the low-balance rule (5000 or below) against the final balance after both rows.\nAfter adding both rows, tell the user the correction was made and give the new balance.\n\nThe user input is:   {{ $json.chatInput }}\n\nUse the date format as: {{ $now.format('yyyy-MM-dd') }}"
+        }
+      },
+      "id": "ID",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        416,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.1-flash-lite",
+        "options": {}
+      },
+      "id": "ID",
+      "name": "Google Gemini Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        208,
+        240
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ID",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 20
+      },
+      "id": "ID",
+      "name": "Simple Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        368,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "ID",
+          "mode": "list",
+          "cachedResultName": "finance tracker",
+          "cachedResultUrl": "FINANCETRACKERLINK"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "FINANCETRACKERLINK"
+        },
+        "options": {}
+      },
+      "id": "ID",
+      "name": "get_previous_balance",
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        480,
+        208
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ID",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "ID",
+          "mode": "list",
+          "cachedResultName": "finance tracker",
+          "cachedResultUrl": "FINANCETRACKERLINK"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "FINANCETRACKERLINK"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Credit \\ Debit ": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Credit___Debit_', ``, 'string') }}",
+            "Type of Expenses": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Type_of_Expenses', ``, 'string') }}",
+            "Amount ": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Amount_', `The transaction amount as a plain number only, for example 3000. Do not wrap it in an object or add text.`, 'number') }}",
+            "Date": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Date', ``, 'string') }}",
+            "Balance Amount": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Balance_Amount', ``, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Credit \\ Debit ",
+              "displayName": "Credit \\ Debit ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Type of Expenses",
+              "displayName": "Type of Expenses",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Amount ",
+              "displayName": "Amount ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Balance Amount",
+              "displayName": "Balance Amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "ID",
+      "name": "Append row in sheet in Google Sheets",
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        640,
+        224
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ID",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('To', ``, 'string') }}",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {}
+      },
+      "id": "ID",
+      "name": "Gmail send alert",
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        784,
+        224
+      ],
+      "webhookId": "ID",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "ID",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_previous_balance": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet in Google Sheets": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail send alert": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "ID",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ID"
+  },
+  "nodeGroups": [],
+  "id": "ID",
+  "tags": []
+}
